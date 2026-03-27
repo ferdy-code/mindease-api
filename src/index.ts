@@ -5,6 +5,7 @@ import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 
 import auth from "@/routes/auth";
+import mood from "@/routes/mood";
 import { fail } from "@/utils/response";
 
 const app = new Hono();
@@ -30,6 +31,7 @@ app.onError((err, c) => {
 });
 
 app.route("/auth", auth);
+app.route("/moods", mood);
 
 app.get("/", (c) => {
   return c.json({
