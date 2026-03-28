@@ -31,8 +31,29 @@ chat.post("/sessions", async (c) => {
 chat.get("/sessions", async (c) => {
   const user = c.get("user");
 
+  const lastMessageSub = sql`(
+    SELECT row_to_json(m.*) FROM (
+      SELECT content, role, created_at as "createdAt"
+      FROM chat_messages
+      WHERE session_id = ${chatSessions.id}
+      ORDER BY created_at DESC LIMIT 1
+    ) m
+  )`;
+
   const sessions = await db
-    .select()
+    .select({
+      id: chatSessions.id,
+      userId: chatSessions.userId,
+      title: chatSessions.title,
+      isActive: chatSessions.isActive,
+      createdAt: chatSessions.createdAt,
+      updatedAt: chatSessions.updatedAt,
+      lastMessage: sql<{
+        content: string;
+        role: string;
+        createdAt: string;
+      } | null>`${lastMessageSub}`,
+    })
     .from(chatSessions)
     .where(eq(chatSessions.userId, user.id))
     .orderBy(desc(chatSessions.createdAt));
@@ -188,10 +209,7 @@ chat.get("/sessions/:id/messages", async (c) => {
     .select()
     .from(chatSessions)
     .where(
-      and(
-        eq(chatSessions.id, sessionId),
-        eq(chatSessions.userId, user.id),
-      ),
+      and(eq(chatSessions.id, sessionId), eq(chatSessions.userId, user.id)),
     )
     .limit(1);
 
@@ -231,10 +249,7 @@ chat.delete("/sessions/:id", async (c) => {
     .select()
     .from(chatSessions)
     .where(
-      and(
-        eq(chatSessions.id, sessionId),
-        eq(chatSessions.userId, user.id),
-      ),
+      and(eq(chatSessions.id, sessionId), eq(chatSessions.userId, user.id)),
     )
     .limit(1);
 
