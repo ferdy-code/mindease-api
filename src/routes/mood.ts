@@ -14,11 +14,34 @@ mood.use("/*", authMiddleware);
 
 mood.post("/", async (c) => {
   const user = c.get("user");
-  const body = createMoodSchema.parse(await c.req.json());
+  let body = await c.req.json();
+
+  switch (body.moodScore) {
+    case 1:
+      body.moodLabel = "terrible";
+      break;
+    case 2:
+      body.moodLabel = "bad";
+      break;
+    case 3:
+      body.moodLabel = "okay";
+      break;
+    case 4:
+      body.moodLabel = "good";
+      break;
+    case 5:
+      body.moodLabel = "great";
+      break;
+  }
+
+  const validation = createMoodSchema.safeParse(body);
+  if (!validation.success) {
+    throw new HTTPException(400, { message: "Invalid request body" });
+  }
 
   const [entry] = await db
     .insert(moodEntries)
-    .values({ ...body, userId: user.id })
+    .values({ ...validation.data, userId: user.id })
     .returning();
 
   return ok(c, entry, 201, "Mood entry created");
@@ -66,7 +89,7 @@ mood.get("/today", async (c) => {
         eq(moodEntries.userId, user.id),
         gte(moodEntries.createdAt, startOfDay),
         lte(moodEntries.createdAt, endOfDay),
-      )
+      ),
     )
     .orderBy(desc(moodEntries.createdAt));
 
@@ -89,10 +112,7 @@ mood.get("/stats", async (c) => {
     .select()
     .from(moodEntries)
     .where(
-      and(
-        eq(moodEntries.userId, user.id),
-        gte(moodEntries.createdAt, since),
-      )
+      and(eq(moodEntries.userId, user.id), gte(moodEntries.createdAt, since)),
     )
     .orderBy(desc(moodEntries.createdAt));
 
@@ -106,9 +126,10 @@ mood.get("/stats", async (c) => {
     });
   }
 
-  const averageScore = Math.round(
-    (entries.reduce((sum, e) => sum + e.moodScore, 0) / entries.length) * 100,
-  ) / 100;
+  const averageScore =
+    Math.round(
+      (entries.reduce((sum, e) => sum + e.moodScore, 0) / entries.length) * 100,
+    ) / 100;
 
   const distribution: Record<string, number> = {
     terrible: 0,

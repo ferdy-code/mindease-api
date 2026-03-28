@@ -17,15 +17,21 @@ export interface AuthJWTPayload extends JWTPayload {
   email: string;
 }
 
-export async function signAccessToken(payload: AuthJWTPayload): Promise<string> {
-  return new SignJWT({ sub: payload.sub, email: payload.email })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(ACCESS_EXPIRES)
-    .sign(JWT_SECRET);
+export async function signAccessToken(
+  payload: AuthJWTPayload,
+): Promise<string> {
+  return (
+    new SignJWT({ sub: payload.sub, email: payload.email })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      // .setExpirationTime(ACCESS_EXPIRES)
+      .sign(JWT_SECRET)
+  );
 }
 
-export async function signRefreshToken(payload: AuthJWTPayload): Promise<string> {
+export async function signRefreshToken(
+  payload: AuthJWTPayload,
+): Promise<string> {
   return new SignJWT({ sub: payload.sub, email: payload.email })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -41,7 +47,9 @@ export async function verifyToken(token: string): Promise<AuthJWTPayload> {
 export async function authMiddleware(c: Context, next: Next) {
   const header = c.req.header("Authorization");
   if (!header?.startsWith("Bearer ")) {
-    throw new HTTPException(401, { message: "Missing or invalid Authorization header" });
+    throw new HTTPException(401, {
+      message: "Missing or invalid Authorization header",
+    });
   }
 
   const token = header.slice(7);
@@ -53,7 +61,12 @@ export async function authMiddleware(c: Context, next: Next) {
   }
 
   const [user] = await db
-    .select({ id: users.id, email: users.email, name: users.name, isActive: users.isActive })
+    .select({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+      isActive: users.isActive,
+    })
     .from(users)
     .where(eq(users.id, payload.sub))
     .limit(1);
