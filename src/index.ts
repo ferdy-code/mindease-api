@@ -7,6 +7,7 @@ import { HTTPException } from "hono/http-exception";
 import auth from "@/routes/auth";
 import mood from "@/routes/mood";
 import journal from "@/routes/journal";
+import chat from "@/routes/chat";
 import { fail } from "@/utils/response";
 
 const app = new Hono();
@@ -17,7 +18,7 @@ app.use(
     origin: ["http://localhost:3000"],
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
 app.onError((err, c) => {
@@ -34,6 +35,7 @@ app.onError((err, c) => {
 app.route("/auth", auth);
 app.route("/moods", mood);
 app.route("/journals", journal);
+app.route("/chat", chat);
 
 app.get("/", (c) => {
   return c.json({
@@ -53,5 +55,6 @@ console.log(`MindEase API running on http://localhost:${port}`);
 
 export default {
   port,
+  hostname: "0.0.0.0",
   fetch: app.fetch,
 };
