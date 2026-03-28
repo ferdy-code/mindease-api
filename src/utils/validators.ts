@@ -51,3 +51,15 @@ export const updateJournalSchema = z.object({
 
 export type CreateJournalInput = z.infer<typeof createJournalSchema>;
 export type UpdateJournalInput = z.infer<typeof updateJournalSchema>;
+
+export const createChatSessionSchema = z.object({
+  title: z.string().min(1).max(255).optional(),
+});
+
+export const sendMessageSchema = z.object({
+  sessionId: z.string().uuid(),
+  message: z.string().min(1).max(5000),
+});
+
+export type CreateChatSessionInput = z.infer<typeof createChatSessionSchema>;
+export type SendMessageInput = z.infer<typeof sendMessageSchema>;
