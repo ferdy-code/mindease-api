@@ -8,6 +8,13 @@
       "when": 1774631423050,
       "tag": "0000_grey_warhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1774668043486,
+      "tag": "0001_classy_johnny_blaze",
+      "breakpoints": true
     }
   ]
 }
