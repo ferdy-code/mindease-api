@@ -34,3 +34,20 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type RefreshInput = z.infer<typeof refreshSchema>;
 export type CreateMoodInput = z.infer<typeof createMoodSchema>;
 export type UpdateMoodInput = z.infer<typeof updateMoodSchema>;
+
+export const createJournalSchema = z.object({
+  title: z.string().min(1).max(255),
+  content: z.string().min(1),
+  emotionTags: z.array(z.string()).optional(),
+  isPrivate: z.boolean().optional(),
+});
+
+export const updateJournalSchema = z.object({
+  title: z.string().min(1).max(255).optional(),
+  content: z.string().min(1).optional(),
+  emotionTags: z.array(z.string()).optional(),
+  isPrivate: z.boolean().optional(),
+});
+
+export type CreateJournalInput = z.infer<typeof createJournalSchema>;
+export type UpdateJournalInput = z.infer<typeof updateJournalSchema>;

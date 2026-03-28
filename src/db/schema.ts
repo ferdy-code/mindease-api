@@ -51,6 +51,7 @@ export const journalEntries = pgTable("journal_entries", {
   content: text("content").notNull(),
   emotionTags: jsonb("emotion_tags").$type<string[]>(),
   isPrivate: boolean("is_private").default(true).notNull(),
+  isFavorite: boolean("is_favorite").default(false).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

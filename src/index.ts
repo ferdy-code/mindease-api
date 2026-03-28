@@ -6,6 +6,7 @@ import { HTTPException } from "hono/http-exception";
 
 import auth from "@/routes/auth";
 import mood from "@/routes/mood";
+import journal from "@/routes/journal";
 import { fail } from "@/utils/response";
 
 const app = new Hono();
@@ -32,6 +33,7 @@ app.onError((err, c) => {
 
 app.route("/auth", auth);
 app.route("/moods", mood);
+app.route("/journals", journal);
 
 app.get("/", (c) => {
   return c.json({
