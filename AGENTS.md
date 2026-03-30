@@ -44,12 +44,12 @@ tsconfig.json       # TypeScript strict config
 
 ## Environment Variables
 
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `JWT_SECRET` | Secret for signing JWT tokens (jose) |
-| `GEMINI_API_KEY` | Google Generative AI API key |
-| `PORT` | Server port (default: 4000) |
+| Variable         | Description                          |
+| ---------------- | ------------------------------------ |
+| `DATABASE_URL`   | PostgreSQL connection string         |
+| `JWT_SECRET`     | Secret for signing JWT tokens (jose) |
+| `GEMINI_API_KEY` | Google Generative AI API key         |
+| `PORT`           | Server port (default: 4000)          |
 
 Copy `.env.example` to `.env` and fill in real values. Never commit `.env`.
 
@@ -59,7 +59,6 @@ Copy `.env.example` to `.env` and fill in real values. Never commit `.env`.
 
 - Use **ESM** imports only (`import ... from "..."`). The project uses `"type": "module"`.
 - Package imports first, then relative imports, separated by a blank line.
-- Use `import "dotenv/config"` at the top of files that need env vars.
 - Use path alias `@/*` → `./src/*` for deep cross-module imports (configured in tsconfig).
 
 ```ts
@@ -79,18 +78,18 @@ import * as schema from "./schema";
 
 ### Naming Conventions
 
-| Concept | Convention | Example |
-|---|---|---|
-| Files & directories | `kebab-case` | `mood-entries.ts`, `chat-sessions/` |
-| Exported tables (Drizzle) | `camelCase` noun | `moodEntries`, `chatSessions` |
-| DB column names | `snake_case` string arg | `varchar("mood_score")` |
-| DB column TS names | `camelCase` property | `moodScore`, `createdAt` |
-| Routes / endpoints | `kebab-case` paths | `/mood-entries`, `/chat-sessions` |
-| Enums (Drizzle pgEnum) | `camelCase` + `Enum` suffix | `moodLabelEnum` |
-| Variables & functions | `camelCase` | `getUserById`, `port` |
-| Types / Interfaces | `PascalCase` | `CreateUserInput`, `AuthPayload` |
-| Zod schemas | `camelCase` + `Schema` suffix | `createUserSchema` |
-| Environment variables | `UPPER_SNAKE_CASE` | `DATABASE_URL` |
+| Concept                   | Convention                    | Example                             |
+| ------------------------- | ----------------------------- | ----------------------------------- |
+| Files & directories       | `kebab-case`                  | `mood-entries.ts`, `chat-sessions/` |
+| Exported tables (Drizzle) | `camelCase` noun              | `moodEntries`, `chatSessions`       |
+| DB column names           | `snake_case` string arg       | `varchar("mood_score")`             |
+| DB column TS names        | `camelCase` property          | `moodScore`, `createdAt`            |
+| Routes / endpoints        | `kebab-case` paths            | `/mood-entries`, `/chat-sessions`   |
+| Enums (Drizzle pgEnum)    | `camelCase` + `Enum` suffix   | `moodLabelEnum`                     |
+| Variables & functions     | `camelCase`                   | `getUserById`, `port`               |
+| Types / Interfaces        | `PascalCase`                  | `CreateUserInput`, `AuthPayload`    |
+| Zod schemas               | `camelCase` + `Schema` suffix | `createUserSchema`                  |
+| Environment variables     | `UPPER_SNAKE_CASE`            | `DATABASE_URL`                      |
 
 ### Types
 

@@ -1,18 +1,15 @@
 import type { Context, Next } from "hono";
-import { jwtVerify, SignJWT } from "jose";
-import type { JWTPayload } from "jose";
+import { sign, verify } from "hono/jwt";
 import { HTTPException } from "hono/http-exception";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import "dotenv/config";
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
-
+const JWT_SECRET = process.env.JWT_SECRET!;
 const ACCESS_EXPIRES = "15m";
 const REFRESH_EXPIRES = "7d";
 
-export interface AuthJWTPayload extends JWTPayload {
+export interface AuthJWTPayload {
   sub: string;
   email: string;
 }
@@ -20,28 +17,26 @@ export interface AuthJWTPayload extends JWTPayload {
 export async function signAccessToken(
   payload: AuthJWTPayload,
 ): Promise<string> {
-  return (
-    new SignJWT({ sub: payload.sub, email: payload.email })
-      .setProtectedHeader({ alg: "HS256" })
-      .setIssuedAt()
-      // .setExpirationTime(ACCESS_EXPIRES)
-      .sign(JWT_SECRET)
+  return sign(
+    { sub: payload.sub, email: payload.email, type: "access" },
+    JWT_SECRET,
+    "HS256",
   );
 }
 
 export async function signRefreshToken(
   payload: AuthJWTPayload,
 ): Promise<string> {
-  return new SignJWT({ sub: payload.sub, email: payload.email })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(REFRESH_EXPIRES)
-    .sign(JWT_SECRET);
+  return sign(
+    { sub: payload.sub, email: payload.email, type: "refresh" },
+    JWT_SECRET,
+    "HS256",
+  );
 }
 
 export async function verifyToken(token: string): Promise<AuthJWTPayload> {
-  const { payload } = await jwtVerify<AuthJWTPayload>(token, JWT_SECRET);
-  return payload;
+  const decoded = await verify(token, JWT_SECRET, "HS256");
+  return decoded as unknown as AuthJWTPayload;
 }
 
 export async function authMiddleware(c: Context, next: Next) {

@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
@@ -8,6 +7,8 @@ import auth from "@/routes/auth";
 import mood from "@/routes/mood";
 import journal from "@/routes/journal";
 import chat from "@/routes/chat";
+import meditation from "@/routes/meditation";
+import insights from "@/routes/insights";
 import { fail } from "@/utils/response";
 
 const app = new Hono();
@@ -36,6 +37,8 @@ app.route("/auth", auth);
 app.route("/moods", mood);
 app.route("/journals", journal);
 app.route("/chat", chat);
+app.route("/meditations", meditation);
+app.route("/insights", insights);
 
 app.get("/", (c) => {
   return c.json({

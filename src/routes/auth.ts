@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { hashSync, compareSync } from "bcryptjs";
 import { createHash } from "crypto";
 import { eq, and, gt } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
@@ -13,7 +12,7 @@ import {
   authMiddleware,
 } from "@/middleware/auth";
 import { registerSchema, loginSchema, refreshSchema } from "@/utils/validators";
-import { ok, fail } from "@/utils/response";
+import { ok } from "@/utils/response";
 
 const auth = new Hono();
 
@@ -51,7 +50,10 @@ auth.post("/register", async (c) => {
     throw new HTTPException(409, { message: "Email already registered" });
   }
 
-  const hashedPassword = hashSync(body.password, 12);
+  const hashedPassword = await Bun.password.hash(body.password, {
+    algorithm: "bcrypt",
+    cost: 12,
+  });
   const [newUser] = await db
     .insert(users)
     .values({ email: body.email, password: hashedPassword, name: body.name })
@@ -59,10 +61,15 @@ auth.post("/register", async (c) => {
 
   const tokens = await issueTokens(newUser.id, newUser.email);
 
-  return ok(c, {
-    user: { id: newUser.id, email: newUser.email, name: newUser.name },
-    ...tokens,
-  }, 201, "Registration successful");
+  return ok(
+    c,
+    {
+      user: { id: newUser.id, email: newUser.email, name: newUser.name },
+      ...tokens,
+    },
+    201,
+    "Registration successful",
+  );
 });
 
 auth.post("/login", async (c) => {
@@ -80,7 +87,7 @@ auth.post("/login", async (c) => {
     .where(eq(users.email, body.email))
     .limit(1);
 
-  if (!user || !compareSync(body.password, user.password)) {
+  if (!user || !(await Bun.password.verify(body.password, user.password))) {
     throw new HTTPException(401, { message: "Invalid email or password" });
   }
 
@@ -90,10 +97,15 @@ auth.post("/login", async (c) => {
 
   const tokens = await issueTokens(user.id, user.email);
 
-  return ok(c, {
-    user: { id: user.id, email: user.email, name: user.name },
-    ...tokens,
-  }, 200, "Login successful");
+  return ok(
+    c,
+    {
+      user: { id: user.id, email: user.email, name: user.name },
+      ...tokens,
+    },
+    200,
+    "Login successful",
+  );
 });
 
 auth.post("/refresh", async (c) => {
@@ -103,7 +115,9 @@ auth.post("/refresh", async (c) => {
   try {
     payload = await verifyToken(body.refreshToken);
   } catch {
-    throw new HTTPException(401, { message: "Invalid or expired refresh token" });
+    throw new HTTPException(401, {
+      message: "Invalid or expired refresh token",
+    });
   }
 
   const tokenHash = hashToken(body.refreshToken);
@@ -115,12 +129,14 @@ auth.post("/refresh", async (c) => {
         eq(refreshTokens.tokenHash, tokenHash),
         eq(refreshTokens.isRevoked, false),
         gt(refreshTokens.expiresAt, new Date()),
-      )
+      ),
     )
     .limit(1);
 
   if (!stored) {
-    throw new HTTPException(401, { message: "Refresh token not found or revoked" });
+    throw new HTTPException(401, {
+      message: "Refresh token not found or revoked",
+    });
   }
 
   await db
@@ -146,7 +162,7 @@ auth.post("/logout", authMiddleware, async (c) => {
         and(
           eq(refreshTokens.tokenHash, tokenHash),
           eq(refreshTokens.userId, user.id),
-        )
+        ),
       );
   } else {
     await db
