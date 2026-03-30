@@ -18,6 +18,18 @@ export const moodLabelEnum = pgEnum("mood_label", [
   "great",
 ]);
 
+export const meditationTypeEnum = pgEnum("meditation_type", [
+  "meditation",
+  "breathing",
+]);
+
+export const meditationCategoryEnum = pgEnum("meditation_category", [
+  "morning",
+  "stress",
+  "sleep",
+  "focus",
+]);
+
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: varchar("email", { length: 255 }).notNull().unique(),
@@ -82,8 +94,12 @@ export const meditations = pgTable("meditations", {
   id: uuid("id").defaultRandom().primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  category: varchar("category", { length: 100 }),
+  type: meditationTypeEnum("type").default("meditation").notNull(),
+  category: meditationCategoryEnum("category"),
   durationMinutes: integer("duration_minutes").notNull(),
+  instructions: jsonb("instructions").$type<
+    { phase: "inhale" | "hold" | "exhale"; duration: number }[]
+  >(),
   audioUrl: text("audio_url"),
   imageUrl: text("image_url"),
   isActive: boolean("is_active").default(true).notNull(),
@@ -111,6 +127,22 @@ export const userSessionLogs = pgTable("user_session_logs", {
   activityType: varchar("activity_type", { length: 50 }).notNull(),
   durationSeconds: integer("duration_seconds"),
   metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const weeklyInsights = pgTable("weekly_insights", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  weekStart: timestamp("week_start", { withTimezone: true }).notNull(),
+  weekEnd: timestamp("week_end", { withTimezone: true }).notNull(),
+  summary: text("summary").notNull(),
+  patterns: text("patterns"),
+  suggestions: text("suggestions"),
+  moodAverage: integer("mood_average"),
+  rawData: jsonb("raw_data").$type<Record<string, unknown>>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
